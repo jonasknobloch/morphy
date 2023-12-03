@@ -5,10 +5,10 @@ pub fn main() {
     let pre_tokenizer = IsolateLemmas{
         add_prefix_space: true,
         trim_offsets: true,
-        use_regex: true
+        use_regex: true,
     };
 
-    let mut pre_tokenized = PreTokenizedString::from("Hello! How are you? I'm fine, thank you.");
+    let mut pre_tokenized = PreTokenizedString::from("That's unbelievable!");
 
     let _ = pre_tokenizer.pre_tokenize(&mut pre_tokenized);
 
