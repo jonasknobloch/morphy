@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use rust_stemmers::{Algorithm, Stemmer};
+use crate::unimorph::socket::split;
 
 use serde::{Serialize, Deserialize};
 
@@ -64,9 +64,18 @@ impl PreTokenizer for IsolateLemmas {
                 Ok(vec![normalized])
             }
         })?;
-        let en_stemmer = Stemmer::create(Algorithm::English);
         pretokenized.split(|_, mut normalized| {
-            normalized.split(&en_stemmer.stem(normalized.get()).to_string(), SplitDelimiterBehavior::Isolated) // TODO switch to uni-morph "stemming"
+            let split = split(normalized.get())?;
+            let mut new_chars: Vec<(char, isize)> = vec![];
+            split.chars().for_each(|c| {
+                if c == '#' {
+                    new_chars.push((c, 1));
+                } else {
+                    new_chars.push((c, 0));
+                }
+            });
+            normalized.transform(new_chars, 0);
+            normalized.split("#", SplitDelimiterBehavior::Removed)
         })?;
         pretokenized.normalize(|normalized| {
             let s = normalized.get();
