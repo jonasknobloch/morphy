@@ -2,7 +2,7 @@ use morphy::pre_tokenizers::PreTokenizerWrapper;
 use morphy::pre_tokenizers::isolate_lemmas::IsolateLemmas;
 use morphy::pre_tokenizers::sequence::Sequence;
 use tokenizers::{OffsetReferential, OffsetType, PreTokenizedString, PreTokenizer};
-use tokenizers::decoders::byte_level::ByteLevel;
+use tokenizers::pre_tokenizers::byte_level::ByteLevel;
 
 pub fn main() {
     let pre_tokenizer = Sequence::new(vec![
