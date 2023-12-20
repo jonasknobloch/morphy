@@ -9,7 +9,7 @@ use tokenizers::{PreTokenizedString, PreTokenizer, SplitDelimiterBehavior};
 #[derive(Serialize, Deserialize)]
 pub struct External {
     pub path_to_socket: String,
-    pub with_prefix: String,
+    pub ignored_prefix: String,
     pub split_delimiter: char,
 }
 
@@ -33,9 +33,9 @@ impl PreTokenizer for External {
         pretokenized.split(|_, mut normalized| {
             let form = normalized.get();
 
-            let has_prefix = form.starts_with(self.with_prefix.as_str());
+            let has_prefix = form.starts_with(self.ignored_prefix.as_str());
 
-            let prefix = if has_prefix {self.with_prefix.as_str() } else { "" };
+            let prefix = if has_prefix {self.ignored_prefix.as_str() } else { "" };
             let tail = if has_prefix { form.strip_prefix(prefix).unwrap() } else { form };
 
             if has_prefix & tail.is_empty() {

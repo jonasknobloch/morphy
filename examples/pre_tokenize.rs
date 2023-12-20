@@ -9,7 +9,7 @@ pub fn main() {
         PreTokenizerWrapper::from(ByteLevel::default()),
         PreTokenizerWrapper::from(External {
             path_to_socket: "/tmp/unimorph.sock".to_string(),
-            with_prefix: "Ġ".to_string(),
+            ignored_prefix: "Ġ".to_string(),
             split_delimiter: '#',
         }),
     ]);
