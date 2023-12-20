@@ -1,5 +1,5 @@
 use morphy::pre_tokenizers::PreTokenizerWrapper;
-use morphy::pre_tokenizers::isolate_lemmas::IsolateLemmas;
+use morphy::pre_tokenizers::external::External;
 use morphy::pre_tokenizers::sequence::Sequence;
 use tokenizers::{OffsetReferential, OffsetType, PreTokenizedString, PreTokenizer};
 use tokenizers::pre_tokenizers::byte_level::ByteLevel;
@@ -7,7 +7,7 @@ use tokenizers::pre_tokenizers::byte_level::ByteLevel;
 pub fn main() {
     let pre_tokenizer = Sequence::new(vec![
         PreTokenizerWrapper::from(ByteLevel::default()),
-        PreTokenizerWrapper::from(IsolateLemmas{
+        PreTokenizerWrapper::from(External {
             path_to_socket: "/tmp/unimorph.sock".to_string(),
             with_prefix: "Ġ".to_string(),
             split_delimiter: '#',

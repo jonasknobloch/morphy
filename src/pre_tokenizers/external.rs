@@ -7,13 +7,13 @@ use tokenizers::{PreTokenizedString, PreTokenizer, SplitDelimiterBehavior};
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[derive(Default)]
 #[derive(Serialize, Deserialize)]
-pub struct IsolateLemmas {
+pub struct External {
     pub path_to_socket: String,
     pub with_prefix: String,
     pub split_delimiter: char,
 }
 
-impl IsolateLemmas {
+impl External {
     fn socket(&self, message :&str) -> io::Result<String> {
         let mut stream = UnixStream::connect(self.path_to_socket.as_str())?;
 
@@ -28,7 +28,7 @@ impl IsolateLemmas {
     }
 }
 
-impl PreTokenizer for IsolateLemmas {
+impl PreTokenizer for External {
     fn pre_tokenize(&self, pretokenized: &mut PreTokenizedString) -> tokenizers::Result<()> {
         pretokenized.split(|_, mut normalized| {
             let form = normalized.get();
