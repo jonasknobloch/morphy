@@ -6,8 +6,8 @@ use tokenizers::pre_tokenizers::byte_level::ByteLevel;
 
 pub fn main() {
     let pre_tokenizer = Sequence::new(vec![
-        PreTokenizerWrapper::ByteLevel(ByteLevel::default()),
-        PreTokenizerWrapper::IsolateLemmas(IsolateLemmas{
+        PreTokenizerWrapper::from(ByteLevel::default()),
+        PreTokenizerWrapper::from(IsolateLemmas{
             with_prefix: "Ġ".to_string(),
             split_delimiter: '#',
         }),
