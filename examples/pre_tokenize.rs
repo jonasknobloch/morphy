@@ -8,6 +8,7 @@ pub fn main() {
     let pre_tokenizer = Sequence::new(vec![
         PreTokenizerWrapper::from(ByteLevel::default()),
         PreTokenizerWrapper::from(IsolateLemmas{
+            path_to_socket: "/tmp/unimorph.sock".to_string(),
             with_prefix: "Ġ".to_string(),
             split_delimiter: '#',
         }),
