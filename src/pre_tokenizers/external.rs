@@ -14,6 +14,14 @@ pub struct External {
 }
 
 impl External {
+    pub fn new(path_to_socket: &str, ignored_prefix: &str, split_delimiter: char) -> Self {
+        Self {
+            path_to_socket: path_to_socket.to_string(),
+            ignored_prefix: ignored_prefix.to_string(),
+            split_delimiter,
+        }
+    }
+
     fn socket(&self, message :&str) -> io::Result<String> {
         let mut stream = UnixStream::connect(self.path_to_socket.as_str())?;
 

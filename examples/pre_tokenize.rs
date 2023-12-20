@@ -7,11 +7,7 @@ use tokenizers::pre_tokenizers::byte_level::ByteLevel;
 pub fn main() {
     let pre_tokenizer = Sequence::new(vec![
         PreTokenizerWrapper::from(ByteLevel::default()),
-        PreTokenizerWrapper::from(External {
-            path_to_socket: "/tmp/unimorph.sock".to_string(),
-            ignored_prefix: "Ġ".to_string(),
-            split_delimiter: '#',
-        }),
+        PreTokenizerWrapper::from(External::new("/tmp/unimorph.sock", "Ġ", '#')),
     ]);
 
     let mut pre_tokenized = PreTokenizedString::from("That's some impressive retrofitting!");
