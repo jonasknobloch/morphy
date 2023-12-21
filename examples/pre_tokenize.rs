@@ -1,8 +1,8 @@
-use morphy::pre_tokenizers::PreTokenizerWrapper;
 use morphy::pre_tokenizers::external::External;
 use morphy::pre_tokenizers::sequence::Sequence;
-use tokenizers::{OffsetReferential, OffsetType, PreTokenizedString, PreTokenizer};
+use morphy::pre_tokenizers::PreTokenizerWrapper;
 use tokenizers::pre_tokenizers::byte_level::ByteLevel;
+use tokenizers::{OffsetReferential, OffsetType, PreTokenizedString, PreTokenizer};
 
 pub fn main() {
     let pre_tokenizer = Sequence::new(vec![

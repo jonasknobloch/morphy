@@ -3,9 +3,9 @@ pub mod sequence;
 
 use serde::{Deserialize, Serialize};
 
-use tokenizers::{PreTokenizedString, PreTokenizer};
 use tokenizers::pre_tokenizers::byte_level::ByteLevel;
 use tokenizers::pre_tokenizers::PreTokenizerWrapper as TokenizersPreTokenizerWrapper;
+use tokenizers::{PreTokenizedString, PreTokenizer};
 
 use crate::pre_tokenizers::external::External;
 
@@ -37,6 +37,8 @@ impl From<External> for PreTokenizerWrapper {
 // PreTokenizerWrapper::TokenizersPreTokenizerWrapper(TokenizersPreTokenizerWrapper::ByteLevel(ByteLevel::default()));
 impl From<ByteLevel> for PreTokenizerWrapper {
     fn from(from: ByteLevel) -> Self {
-        PreTokenizerWrapper::TokenizersPreTokenizerWrapper(TokenizersPreTokenizerWrapper::ByteLevel(from))
+        PreTokenizerWrapper::TokenizersPreTokenizerWrapper(
+            TokenizersPreTokenizerWrapper::ByteLevel(from),
+        )
     }
 }

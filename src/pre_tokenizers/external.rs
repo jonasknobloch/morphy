@@ -1,12 +1,10 @@
+use serde::{Deserialize, Serialize};
 use std::io;
 use std::io::{Read, Write};
 use std::os::unix::net::UnixStream;
-use serde::{Serialize, Deserialize};
 use tokenizers::{PreTokenizedString, PreTokenizer, SplitDelimiterBehavior};
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[derive(Default)]
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct External {
     pub path_to_socket: String,
     pub ignored_prefix: String,
@@ -22,7 +20,7 @@ impl External {
         }
     }
 
-    fn socket(&self, message :&str) -> io::Result<String> {
+    fn socket(&self, message: &str) -> io::Result<String> {
         let mut stream = UnixStream::connect(self.path_to_socket.as_str())?;
 
         stream.write_all(message.as_bytes())?;
@@ -30,7 +28,7 @@ impl External {
         let mut buffer = [0; 1024];
 
         let bytes_read = stream.read(&mut buffer)?;
-        let response= String::from_utf8_lossy(&buffer[..bytes_read]).to_string();
+        let response = String::from_utf8_lossy(&buffer[..bytes_read]).to_string();
 
         Ok(response)
     }
@@ -43,14 +41,23 @@ impl PreTokenizer for External {
 
             let has_prefix = form.starts_with(self.ignored_prefix.as_str());
 
-            let prefix = if has_prefix {self.ignored_prefix.as_str() } else { "" };
-            let tail = if has_prefix { form.strip_prefix(prefix).unwrap() } else { form };
+            let prefix = if has_prefix {
+                self.ignored_prefix.as_str()
+            } else {
+                ""
+            };
+
+            let tail = if has_prefix {
+                form.strip_prefix(prefix).unwrap()
+            } else {
+                form
+            };
 
             if has_prefix & tail.is_empty() {
                 return Ok(vec![normalized]);
             }
 
-            let split  =  prefix.to_owned() + self.socket(tail)?.as_str();
+            let split = prefix.to_owned() + self.socket(tail)?.as_str();
 
             let mut new_chars: Vec<(char, isize)> = vec![];
 

@@ -1,7 +1,7 @@
+use serde::{Deserialize, Serialize};
 use tokenizers::impl_serde_type;
 use tokenizers::tokenizer::{PreTokenizedString, PreTokenizer, Result};
 use tokenizers::utils::macro_rules_attribute;
-use serde::{Deserialize, Serialize};
 
 use crate::pre_tokenizers::PreTokenizerWrapper;
 
@@ -30,6 +30,7 @@ impl PreTokenizer for Sequence {
         for pretokenizer in &self.pretokenizers {
             pretokenizer.pre_tokenize(pretokenized)?;
         }
+
         Ok(())
     }
 }
