@@ -1,5 +1,6 @@
 pub mod external;
 pub mod sequence;
+pub mod tree_split;
 
 use serde::{Deserialize, Serialize};
 
@@ -8,11 +9,13 @@ use tokenizers::pre_tokenizers::PreTokenizerWrapper as TokenizersPreTokenizerWra
 use tokenizers::{PreTokenizedString, PreTokenizer};
 
 use crate::pre_tokenizers::external::External;
+use crate::pre_tokenizers::tree_split::TreeSplit;
 
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]
 #[serde(untagged)]
 pub enum PreTokenizerWrapper {
     External(External),
+    TreeSplit(TreeSplit),
     TokenizersPreTokenizerWrapper(TokenizersPreTokenizerWrapper),
 }
 
@@ -20,6 +23,7 @@ impl PreTokenizer for PreTokenizerWrapper {
     fn pre_tokenize(&self, normalized: &mut PreTokenizedString) -> tokenizers::Result<()> {
         match self {
             Self::External(ext) => ext.pre_tokenize(normalized),
+            Self::TreeSplit(trs) => trs.pre_tokenize(normalized),
             Self::TokenizersPreTokenizerWrapper(ptw) => ptw.pre_tokenize(normalized),
         }
     }
@@ -30,6 +34,14 @@ impl PreTokenizer for PreTokenizerWrapper {
 impl From<External> for PreTokenizerWrapper {
     fn from(from: External) -> Self {
         PreTokenizerWrapper::External(from)
+    }
+}
+
+// PreTokenizerWrapper::from(TreeSplit::default());
+// PreTokenizerWrapper::TreeSplit(TreeSplit::default());
+impl From<TreeSplit> for PreTokenizerWrapper {
+    fn from(from: TreeSplit) -> Self {
+        PreTokenizerWrapper::TreeSplit(from)
     }
 }
 

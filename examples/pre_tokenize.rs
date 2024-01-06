@@ -1,13 +1,13 @@
-use morphy::pre_tokenizers::external::External;
 use morphy::pre_tokenizers::sequence::Sequence;
+use morphy::pre_tokenizers::tree_split::TreeSplit;
 use morphy::pre_tokenizers::PreTokenizerWrapper;
 use tokenizers::pre_tokenizers::byte_level::ByteLevel;
 use tokenizers::{OffsetReferential, OffsetType, PreTokenizedString, PreTokenizer};
 
 pub fn main() {
     let pre_tokenizer = Sequence::new(vec![
-        PreTokenizerWrapper::from(ByteLevel::default()),
-        PreTokenizerWrapper::from(External::new("/tmp/unimorph.sock", "Ġ", '#')),
+        PreTokenizerWrapper::from(TreeSplit::default()),
+        PreTokenizerWrapper::from(ByteLevel::new(false, true, false)),
     ]);
 
     let mut pre_tokenized = PreTokenizedString::from("That's some impressive retrofitting!");
