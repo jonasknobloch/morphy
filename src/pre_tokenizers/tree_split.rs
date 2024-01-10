@@ -54,7 +54,9 @@ impl TreeSplit {
             return vec![(0, message.len())];
         }
 
-        let mut tree = Node::<char, bool>::new(message.to_owned(), Some(true));
+        let chars = message.chars().collect::<Vec<char>>();
+
+        let mut tree = Node::<char, bool>::new(chars.clone(), Some(true));
 
         for lemma in lemmas {
             // if !lemma.starts_with(message) {
@@ -70,11 +72,28 @@ impl TreeSplit {
                     continue;
                 }
 
-                tree.insert(form, true);
+                tree.insert(form.chars().collect::<Vec<char>>(), true);
             }
         }
 
-        return split_path(tree, message);
+        // convert character offsets into byte offsets
+
+        let mut byte_offsets: Vec<(usize, usize)> = vec![];
+
+        let mut index = 0;
+
+        for offsets in split_path(tree, message.chars().collect()) {
+            let length = chars[offsets.0..offsets.1]
+                .iter()
+                .map(|c| c.len_utf8())
+                .sum::<usize>();
+
+            byte_offsets.push((index, index + length));
+
+            index += length;
+        }
+
+        return byte_offsets;
     }
 }
 

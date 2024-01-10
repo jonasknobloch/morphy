@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 use radix_tree::{Node, Radix};
 
-pub fn split_path(node: Node<char, bool>, path: &str) -> Vec<(usize, usize)> {
+pub fn split_path(node: Node<char, bool>, path: Vec<char>) -> Vec<(usize, usize)> {
     let f: Box<dyn Fn(&Node<char, bool>) -> bool> = Box::new(|node| {
         let mut paths = node.nodes.len();
 
@@ -18,9 +18,9 @@ pub fn split_path(node: Node<char, bool>, path: &str) -> Vec<(usize, usize)> {
 
     return recursive_split(vec![node], path, 0, 0, vec![], &*f);
 }
-fn recursive_split<'a>(
+fn recursive_split(
     nodes: Vec<Node<char, bool>>,
-    path: &'a str,
+    path: Vec<char>,
     mut i: usize,
     mut j: usize,
     mut offsets: Vec<(usize, usize)>,
@@ -34,9 +34,8 @@ fn recursive_split<'a>(
 
     for node in nodes {
         let size = node.path.len();
-        let branch: String = node.path.iter().collect();
 
-        if &path[i + j..i + j + size] == branch.as_str() {
+        if path[i + j..i + j + size] == node.path {
             j += node.path.len();
 
             if f(&node) {
@@ -57,19 +56,19 @@ fn recursive_split<'a>(
 
 #[test]
 fn test_split() {
-    let mut tree = Node::<char, bool>::new("", Some(false));
+    let mut tree = Node::<char, bool>::new(vec![], Some(false));
 
-    tree.insert("foobar", true);
-    tree.insert("foobaz", true);
-    tree.insert("foo", true);
+    tree.insert(vec!['f', 'o', 'o', 'b', 'a', 'r'], true);
+    tree.insert(vec!['f', 'o', 'o', 'b', 'a', 'z'], true);
+    tree.insert(vec!['f', 'o', 'o'], true);
 
     let f: Box<dyn Fn(&Node<char, bool>) -> bool> = Box::new(|node| {
         return node.nodes.len() > 1;
     });
 
-    println!("{:?}", tree.find("bar"));
+    println!("{:?}", tree.find(vec!['b', 'a', 'r']));
 
-    let r = recursive_split(vec![tree], "foobar", 0, 0, vec![], &*f);
+    let r = recursive_split(vec![tree], "foobar".chars().collect(), 0, 0, vec![], &*f);
 
     println!("{:?}", r);
 }
