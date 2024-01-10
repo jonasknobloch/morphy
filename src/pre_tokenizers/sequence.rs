@@ -1,14 +1,52 @@
-use serde::{Deserialize, Serialize};
-use tokenizers::impl_serde_type;
+use serde::ser::SerializeMap;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use tokenizers::tokenizer::{PreTokenizedString, PreTokenizer, Result};
-use tokenizers::utils::macro_rules_attribute;
 
 use crate::pre_tokenizers::PreTokenizerWrapper;
 
 #[derive(Clone, Debug, PartialEq)]
-#[macro_rules_attribute(impl_serde_type!)]
 pub struct Sequence {
     pretokenizers: Vec<PreTokenizerWrapper>,
+}
+
+impl Serialize for Sequence {
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut map = serializer.serialize_map(Some(2))?;
+
+        map.serialize_entry("type", "Sequence")?;
+
+        let mut valid_pretokenizers = Vec::new();
+
+        for tokenizer in &self.pretokenizers {
+            match tokenizer {
+                PreTokenizerWrapper::External(_) => {
+                    continue;
+                }
+                PreTokenizerWrapper::TreeSplit(_) => {
+                    continue;
+                }
+                _ => {
+                    valid_pretokenizers.push(tokenizer);
+                }
+            }
+        }
+
+        map.serialize_entry("pretokenizers", &valid_pretokenizers)?;
+
+        map.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for Sequence {
+    fn deserialize<D>(_deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        Err(serde::de::Error::custom("deserialization not implemented"))
+    }
 }
 
 impl Sequence {
