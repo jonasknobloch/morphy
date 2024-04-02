@@ -1,0 +1,106 @@
+syntax="proto3";
+
+package morfessor;
+
+message BaselineModel {
+  map<string, Annotation> annotations = 1; // None -> Used only for (semi-)supervised learning / dict (compound, list(list(constructions))
+
+  repeated string forcesplit_list = 2; // force segmentations on the characters in the given list
+
+  // regular expression string for preventing splitting in certain contexts
+  // not None -> self.nosplit_re = re.compile(nosplit_re, re.UNICODE)
+  optional string nosplit_re = 3;
+
+  float penalty = 4;
+  int64 tokens = 5;
+  int64 types = 6;
+
+  // In analyses for each construction a ConstrNode is stored. All
+  // training data has a rcount (real count) > 0. All real morphemes
+  // have no split locations.
+  map<string, ConstrNode> _analyses = 7;
+
+  optional AnnotatedCorpusEncoding _annot_coding = 8; // only used for (semi-)supervised learning
+  CorpusEncoding _corpus_coding = 9;
+
+  FixedCorusWeight _corpus_weight_updater = 10; // weight for the corpus cost
+  Counter _counter = 11; // Counter for random skipping
+  LexiconEncoding _lexicon_coding = 12; // Cost variable for the lexicon
+
+  bool _segment_only = 13; // Flag to indicate the model is only useful for segmentation
+  bool _supervised = 14;
+  bool _use_skips = 15; // randomly skip frequently occurring constructions to speed up training
+}
+
+message Annotation {
+  repeated Analyses analyses = 1;
+}
+
+message Analyses {
+  repeated string constructions = 1;
+}
+
+message ConstrNode {
+  int64 rcount = 1; // root count (from corpus)
+  int64 count = 2; // total count of the node
+  repeated int64 splitloc = 3; // integer or tuple. Location(s) of the possible splits for virtual constructions; empty tuple or 0 if real construction
+}
+
+message FixedCorusWeight {
+  float weight = 1;
+}
+
+message Counter {
+  map<string, int32> counts = 1;
+}
+
+// Base class for calculating the entropy (encoding length) of a corpus or lexicon.
+// Commonly subclassed to redefine specific methods.
+message Encoding {
+  float logtokensum = 1;
+  int64 tokens = 2; // number of construction tokens
+  int64 boundaries = 3;
+  float weight = 4;
+  float _log2pi = 5; // constant used for speeding up logfactorial calculations with Stirling's approximation
+}
+
+// Class for calculating the encoding cost for the Lexicon / extends encoding
+message LexiconEncoding {
+  float logtokensum = 1;
+  int64 tokens = 2;
+  int64 boundaries = 3;
+  float weight = 4;
+  float _log2pi = 5;
+
+  Counter atoms = 6;
+  // int64 types = 7; // number of construction types @property types -> len(self.atoms) + 1
+}
+
+// The basic difference to a normal encoding is that the number of types is
+// not stored directly but fetched from the lexicon encoding. Also does the
+// cost function not contain any permutation cost. / extends encoding
+message CorpusEncoding {
+  float logtokensum = 1;
+  int64 tokens = 2;
+  int64 boundaries = 3;
+  float weight = 4;
+  float _log2pi = 5;
+
+  LexiconEncoding lexicon_encoding = 6;
+  // int64 types = 7; @property types -> self.lexicon_encoding.boundaries + 1
+}
+
+// Encoding the cost of an Annotated Corpus.
+// In this encoding constructions that are missing are penalized. / extends encoding
+message AnnotatedCorpusEncoding {
+  float logtokensum = 1;
+  int64 tokens = 2;
+  int64 boundaries = 3;
+  int64 weight = 4; // The weight of this encoding. If the weight is None, it is updated automatically to be in balance with the corpus
+  float _log2pi = 5;
+
+  bool do_update_weight = 6;
+  CorpusEncoding corpus_coding = 7; // CorpusEncoding instance used for retrieving the number of tokens and boundaries in the corpus
+  float penalty = 8; // log penalty used for missing constructions
+  Counter constructions = 9;
+}
