@@ -4,8 +4,8 @@ use std::path::Path;
 use lazy_static::lazy_static;
 
 use serde::{Deserialize, Serialize};
-use tokenizers::{impl_serde_type, SplitDelimiterBehavior};
 use tokenizers::utils::{macro_rules_attribute, SysRegex};
+use tokenizers::{impl_serde_type, SplitDelimiterBehavior};
 
 use tokenizers::normalizer::Range;
 use tokenizers::{NormalizedString, Offsets, PreTokenizedString, PreTokenizer};
@@ -25,8 +25,21 @@ lazy_static! {
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[macro_rules_attribute(impl_serde_type!)]
 pub struct TreeSplit {
+    add_prefix_space: bool,
+    use_regex: bool,
     #[serde(skip_serializing)]
     unimorph: Unimorph,
+}
+
+impl TreeSplit {
+    pub fn new(add_prefix_space: bool, use_regex: bool) -> Self {
+        let mut tree_split = Self::default();
+
+        tree_split.add_prefix_space = add_prefix_space;
+        tree_split.use_regex = use_regex;
+
+        return tree_split;
+    }
 }
 
 impl Default for TreeSplit {
@@ -34,14 +47,16 @@ impl Default for TreeSplit {
         let mut unimorph = Unimorph::new();
 
         let home = env::var("HOME").unwrap_or_else(|_| "".to_string());
-        let dict = Path::new(&home).join(Path::new(".unimorph/eng/eng"));
+        let dict = Path::new(&home).join(Path::new(".unimorph/ces/ces"));
 
         // println!("{}", dict.to_str().unwrap());
 
         let _ = unimorph.init(dict.to_str().unwrap());
 
         return Self {
-            unimorph
+            add_prefix_space: false,
+            use_regex: true,
+            unimorph,
         };
     }
 }
@@ -78,6 +93,10 @@ impl TreeSplit {
 
         // convert character offsets into byte offsets
 
+        // TODO use offset type char and byte instead of converting splits manually
+        //  see tokenizers-0.15.0/src/tokenizer/pre_tokenizer.rs
+        //  bpe pre_tokenizer test -> get_splits has offeset type argument
+
         let mut byte_offsets: Vec<(usize, usize)> = vec![];
 
         let mut index = 0;
@@ -102,7 +121,7 @@ impl PreTokenizer for TreeSplit {
         let re_ref: &SysRegex = &RE;
         pretokenized.split(|_, mut normalized| {
             if !normalized.get().starts_with(' ') {
-                normalized.prepend(" ");
+                // normalized.prepend(" "); // TODO add option to disable via arg
             }
 
             normalized.split(re_ref, SplitDelimiterBehavior::Isolated)

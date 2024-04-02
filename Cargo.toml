@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 serde = { version = "1.0", features = [ "derive" ] }
-tokenizers = "0.15.0"
+tokenizers = { version = "0.15.0", features = ["http"] }
 paste = "1.0.14"
 csv = { version = "1.3.0", features = [] }
 radix-tree = "0.2.0"
