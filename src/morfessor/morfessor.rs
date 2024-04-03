@@ -4,6 +4,8 @@ use std::path::Path;
 use bytes::Bytes;
 use prost::{DecodeError, Message};
 
+use serde::{Deserialize, Serialize};
+
 pub mod morfessor {
     include!(concat!(env!("OUT_DIR"), "/morfessor.rs"));
 }

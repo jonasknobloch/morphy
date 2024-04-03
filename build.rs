@@ -1,6 +1,11 @@
 use std::io::Result;
 
 fn main() -> Result<()> {
-    prost_build::compile_protos(&["src/morfessor/morfessor.proto"], &["src/morfessor/"])?;
+    let mut config = prost_build::Config::new();
+
+    config.type_attribute(".", "#[derive(serde::Serialize, serde::Deserialize)]");
+
+    config.compile_protos(&["src/morfessor/morfessor.proto"], &["src/morfessor/"])?;
+
     Ok(())
 }

@@ -1,7 +1,9 @@
 pub mod external;
 pub mod sequence;
 pub mod tree_split;
+pub mod morfessor;
 
+use crate::pre_tokenizers::morfessor::Morfessor;
 use serde::{Deserialize, Serialize};
 
 use tokenizers::pre_tokenizers::byte_level::ByteLevel;
@@ -17,6 +19,7 @@ use crate::pre_tokenizers::tree_split::TreeSplit;
 pub enum PreTokenizerWrapper {
     External(External),
     TreeSplit(TreeSplit),
+    Morfessor(Morfessor),
     Sequence(Sequence),
     TokenizersPreTokenizerWrapper(TokenizersPreTokenizerWrapper),
 }
@@ -26,6 +29,7 @@ impl PreTokenizer for PreTokenizerWrapper {
         match self {
             Self::External(ext) => ext.pre_tokenize(normalized),
             Self::TreeSplit(trs) => trs.pre_tokenize(normalized),
+            Self::Morfessor(morf) => morf.pre_tokenize(normalized),
             Self::Sequence(seq) => seq.pre_tokenize(normalized),
             Self::TokenizersPreTokenizerWrapper(ptw) => ptw.pre_tokenize(normalized),
         }
@@ -45,6 +49,14 @@ impl From<External> for PreTokenizerWrapper {
 impl From<TreeSplit> for PreTokenizerWrapper {
     fn from(from: TreeSplit) -> Self {
         PreTokenizerWrapper::TreeSplit(from)
+    }
+}
+
+// PreTokenizerWrapper::from(Morfessor::default());
+// PreTokenizerWrapper::Morfessor(Morfessor::default());
+impl From<Morfessor> for PreTokenizerWrapper {
+    fn from(from: Morfessor) -> Self {
+        PreTokenizerWrapper::Morfessor(from)
     }
 }
 

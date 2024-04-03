@@ -28,6 +28,9 @@ impl Serialize for Sequence {
                 PreTokenizerWrapper::TreeSplit(_) => {
                     continue;
                 }
+                PreTokenizerWrapper::Morfessor(_) => {
+                    continue;
+                }
                 _ => {
                     valid_pretokenizers.push(tokenizer);
                 }
