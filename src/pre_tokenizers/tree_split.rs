@@ -15,6 +15,8 @@ use crate::utils::radix::split_path;
 
 use radix_tree::{Node, Radix};
 
+use crate::utils::offsets;
+
 lazy_static! {
     static ref RE: SysRegex = SysRegex::new(
         r"'s|'t|'re|'ve|'m|'ll|'d| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+"
@@ -91,28 +93,14 @@ impl TreeSplit {
             }
         }
 
-        // convert character offsets into byte offsets
-
         // TODO use offset type char and byte instead of converting splits manually
         //  see tokenizers-0.15.0/src/tokenizer/pre_tokenizer.rs
         //  bpe pre_tokenizer test -> get_splits has offeset type argument
 
-        let mut byte_offsets: Vec<(usize, usize)> = vec![];
+        // decomposed unicode sequences probably result in invalid character offsets
+        // see utils/offsets.rs for details on differing unicode representations
 
-        let mut index = 0;
-
-        for offsets in split_path(tree, message.chars().collect()) {
-            let length = chars[offsets.0..offsets.1]
-                .iter()
-                .map(|c| c.len_utf8())
-                .sum::<usize>();
-
-            byte_offsets.push((index, index + length));
-
-            index += length;
-        }
-
-        return byte_offsets;
+        return offsets::to_byte_offsets_scp(message, split_path(tree, message.chars().collect()));
     }
 }
 
