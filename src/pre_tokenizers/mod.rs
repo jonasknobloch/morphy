@@ -1,9 +1,10 @@
 pub mod external;
 pub mod sequence;
+pub mod pre_byte_level;
+pub mod segmenter;
 pub mod tree_split;
 pub mod morfessor;
 
-use crate::pre_tokenizers::morfessor::Morfessor;
 use serde::{Deserialize, Serialize};
 
 use tokenizers::pre_tokenizers::byte_level::ByteLevel;
@@ -11,15 +12,14 @@ use tokenizers::pre_tokenizers::PreTokenizerWrapper as TokenizersPreTokenizerWra
 use tokenizers::{PreTokenizedString, PreTokenizer};
 
 use crate::pre_tokenizers::external::External;
+use crate::pre_tokenizers::pre_byte_level::PreByteLevel;
 use crate::pre_tokenizers::sequence::Sequence;
-use crate::pre_tokenizers::tree_split::TreeSplit;
 
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]
 #[serde(untagged)]
 pub enum PreTokenizerWrapper {
     External(External),
-    TreeSplit(TreeSplit),
-    Morfessor(Morfessor),
+    PreByteLevel(PreByteLevel),
     Sequence(Sequence),
     TokenizersPreTokenizerWrapper(TokenizersPreTokenizerWrapper),
 }
@@ -28,8 +28,7 @@ impl PreTokenizer for PreTokenizerWrapper {
     fn pre_tokenize(&self, normalized: &mut PreTokenizedString) -> tokenizers::Result<()> {
         match self {
             Self::External(ext) => ext.pre_tokenize(normalized),
-            Self::TreeSplit(trs) => trs.pre_tokenize(normalized),
-            Self::Morfessor(morf) => morf.pre_tokenize(normalized),
+            Self::PreByteLevel(pbl) => pbl.pre_tokenize(normalized),
             Self::Sequence(seq) => seq.pre_tokenize(normalized),
             Self::TokenizersPreTokenizerWrapper(ptw) => ptw.pre_tokenize(normalized),
         }
@@ -43,20 +42,9 @@ impl From<External> for PreTokenizerWrapper {
         PreTokenizerWrapper::External(from)
     }
 }
-
-// PreTokenizerWrapper::from(TreeSplit::default());
-// PreTokenizerWrapper::TreeSplit(TreeSplit::default());
-impl From<TreeSplit> for PreTokenizerWrapper {
-    fn from(from: TreeSplit) -> Self {
-        PreTokenizerWrapper::TreeSplit(from)
-    }
-}
-
-// PreTokenizerWrapper::from(Morfessor::default());
-// PreTokenizerWrapper::Morfessor(Morfessor::default());
-impl From<Morfessor> for PreTokenizerWrapper {
-    fn from(from: Morfessor) -> Self {
-        PreTokenizerWrapper::Morfessor(from)
+impl From<PreByteLevel> for PreTokenizerWrapper {
+    fn from(from: PreByteLevel) -> Self {
+        PreTokenizerWrapper::PreByteLevel(from)
     }
 }
 

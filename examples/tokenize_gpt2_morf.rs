@@ -1,5 +1,5 @@
 use morphy::pre_tokenizers::sequence::Sequence;
-use morphy::pre_tokenizers::morfessor::Morfessor;
+use morphy::pre_tokenizers::morfessor;
 use morphy::pre_tokenizers::PreTokenizerWrapper;
 use tokenizers::decoders::byte_level::ByteLevel;
 use tokenizers::models::bpe::BpeTrainerBuilder;
@@ -9,8 +9,10 @@ use tokenizers::models::TrainerWrapper;
 fn main() -> Result<()> {
     let gpt2_tokenizer = Tokenizer::from_pretrained("gpt2", None)?;
 
+    let morfessor = morfessor::new_pre_tokenizer(false, true, "scripts/unsup_model.proto");
+
     let pre_tokenizer = Sequence::new(vec![
-        PreTokenizerWrapper::from(Morfessor::new()),
+        PreTokenizerWrapper::from(morfessor),
         PreTokenizerWrapper::from(ByteLevel::new(false, true, false)),
     ]);
 
@@ -40,9 +42,7 @@ fn main() -> Result<()> {
         .train_from_files(
             &mut trainer,
             vec!["data/tiny_shakespeare.txt".to_string()],
-            // vec!["/Users/jonas/Developer/czech-gpt/en_part_00000.txt".to_string()],
         )?;
-
 
     // add special end_of_text token
 
@@ -50,16 +50,13 @@ fn main() -> Result<()> {
 
     end_of_text.normalized = true; // match gpt2 (no clue why this is done)
 
-    // tokenizer.add_special_tokens(&[end_of_text]);
-
     tokenizer.add_special_tokens(&[end_of_text]);
 
     // replace pre_tokenizer before saving
 
     tokenizer.with_pre_tokenizer(PreTokenizerWrapper::from(gpt2_tokenizer.get_pre_tokenizer().cloned().unwrap()));
 
-    tokenizer.save("tokenizer_gpt2+morf_cx-en_00000-00000_50k.json", false)?;
+    tokenizer.save("tokenizer_gpt2+morf_tiny_shakespeare_50k.json", false)?;
 
     Ok(())
 }
-

@@ -25,10 +25,7 @@ impl Serialize for Sequence {
                 PreTokenizerWrapper::External(_) => {
                     continue;
                 }
-                PreTokenizerWrapper::TreeSplit(_) => {
-                    continue;
-                }
-                PreTokenizerWrapper::Morfessor(_) => {
+                PreTokenizerWrapper::PreByteLevel(_) => {
                     continue;
                 }
                 _ => {
