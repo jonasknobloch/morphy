@@ -6,7 +6,7 @@ use tokenizers::{OffsetReferential, OffsetType, PreTokenizedString, PreTokenizer
 
 pub fn main() {
     let tree_split = tree_split::new_pre_tokenizer(false, true,  ".unimorph/eng/eng");
-    // let morfessor = pre_tokenizers::morfessor::new_pre_tokenizer(false, true, "scripts/unsup_model.proto");
+    // let morfessor = pre_tokenizers::morfessor::new_pre_tokenizer(false, true, "scripts/unsup_model.proto", MorfessorConfig::default());
 
     let pre_tokenizer = Sequence::new(vec![
         PreTokenizerWrapper::from(tree_split),

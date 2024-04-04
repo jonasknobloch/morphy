@@ -5,11 +5,12 @@ use tokenizers::decoders::byte_level::ByteLevel;
 use tokenizers::models::bpe::BpeTrainerBuilder;
 use tokenizers::{AddedToken, DecoderWrapper, Model, ModelWrapper, NormalizerWrapper, PostProcessorWrapper, Result, Tokenizer, tokenizer, TokenizerBuilder};
 use tokenizers::models::TrainerWrapper;
+use morphy::pre_tokenizers::morfessor::MorfessorConfig;
 
 fn main() -> Result<()> {
     let gpt2_tokenizer = Tokenizer::from_pretrained("gpt2", None)?;
 
-    let morfessor = morfessor::new_pre_tokenizer(false, true, "scripts/unsup_model.proto");
+    let morfessor = morfessor::new_pre_tokenizer(false, true, "scripts/unsup_model.proto", MorfessorConfig::default());
 
     let pre_tokenizer = Sequence::new(vec![
         PreTokenizerWrapper::from(morfessor),
