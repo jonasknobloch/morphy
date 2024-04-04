@@ -4,6 +4,7 @@ use crate::morfessor::morfessor::morfessor::BaselineModel;
 use crate::morfessor::morfessor::viterbi_segment;
 use crate::pre_tokenizers::pre_byte_level::PreByteLevel;
 use crate::pre_tokenizers::segmenter::{Segmenter, SegmenterWrapper};
+use crate::utils::offsets::{collect_grapheme_offsets, to_byte_offsets};
 
 pub fn new_pre_tokenizer(add_prefix_space: bool, use_regex: bool, model_path: &str) -> PreByteLevel {
     let model = match morfessor::decode_model(model_path) {
@@ -47,20 +48,6 @@ impl Segmenter for Morfessor {
             return vec![(0, message.len())];
         }
 
-        let mut byte_offsets: Vec<(usize, usize)> = vec![];
-
-        // byte_offsets.push((0, message.len()));
-
-        let mut index = 0;
-
-        for segment in segments.iter() {
-            let length = segment.chars().count();
-
-            byte_offsets.push((index, index+length)); // TODO make unicode compatible
-
-            index += length
-        }
-
-        return byte_offsets;
+        to_byte_offsets(message, collect_grapheme_offsets(segments))
     }
 }

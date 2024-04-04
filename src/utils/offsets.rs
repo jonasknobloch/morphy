@@ -1,5 +1,21 @@
 use unicode_segmentation::UnicodeSegmentation;
 
+pub fn collect_grapheme_offsets(segments: Vec<String>) -> Vec<(usize, usize)> {
+    let mut grapheme_offsets: Vec<(usize, usize)> = vec![];
+
+    let mut index = 0;
+
+    for segment in segments {
+        let length = segment.graphemes(true).count();
+
+        grapheme_offsets.push((index, index + length));
+
+        index += length;
+    }
+
+    return grapheme_offsets;
+}
+
 pub fn to_byte_offsets_scp(message: &str, character_offsets: Vec<(usize, usize)>) -> Vec<(usize, usize)> {
     let chars = message.chars().collect::<Vec<char>>(); // unicode scalar values
 
