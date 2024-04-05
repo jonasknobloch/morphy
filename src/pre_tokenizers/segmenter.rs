@@ -16,6 +16,10 @@ pub enum SegmenterWrapper {
 
 impl Segmenter for SegmenterWrapper {
     fn segment(&self, message: &str) -> Vec<(usize, usize)> {
+        if message.is_empty() {
+            return vec![(0, message.len())];
+        }
+
         match self {
             SegmenterWrapper::TreeSplit(ts) => ts.segment(message),
             SegmenterWrapper::Morfessor(mf) => mf.segment(message),
