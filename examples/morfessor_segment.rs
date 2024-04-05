@@ -16,6 +16,7 @@ fn main() -> Result<(), Error>{
         "YOOOO",
         "WHATUP",
         "1317281738",
+        "é",
     ];
 
     for compound in corpus {

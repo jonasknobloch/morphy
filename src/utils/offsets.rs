@@ -68,6 +68,22 @@ pub fn to_byte_offsets(message: &str, grapheme_offsets: Vec<(usize, usize)>) -> 
     return byte_offsets;
 }
 
+pub fn unicode_bounds(message: &str) -> Vec<usize> {
+    let mut bounds: Vec<usize> = vec![];
+
+    let mut index = 0;
+
+    for grapheme in message.graphemes(true) {
+        let length = grapheme.len();
+
+        bounds.push(index + length);
+
+        index += length;
+    }
+
+    return bounds;
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -98,5 +114,11 @@ mod tests {
     fn test_to_byte_offsets_unicode() {
         assert_eq!(to_byte_offsets(COMPOSED, vec![(0, 1)]), vec![(0, 2)]);
         assert_eq!(to_byte_offsets(DECOMPOSED, vec![(0, 1)]), vec![(0, 3)]);
+    }
+
+    #[test]
+    fn test_unicode_bounds() {
+        assert_eq!(unicode_bounds("foo"), vec![1, 2, 3]);
+        assert_eq!(unicode_bounds("lél"), vec![1, 3, 4]);
     }
 }

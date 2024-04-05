@@ -1,10 +1,12 @@
-use std::{cmp, fs};
+use std::fs;
 use std::path::Path;
 
 use bytes::Bytes;
 use prost::{DecodeError, Message};
 
 use serde::{Deserialize, Serialize};
+use unicode_segmentation::UnicodeSegmentation;
+use crate::utils::offsets::unicode_bounds;
 
 pub mod morfessor {
     include!(concat!(env!("OUT_DIR"), "/morfessor.rs"));
@@ -15,7 +17,7 @@ pub fn decode_model<P: AsRef<Path>>(path: P) -> Result<morfessor::BaselineModel,
 }
 
 pub fn viterbi_segment(model: &morfessor::BaselineModel, compound: &str, add_count: f64, max_len: usize) -> (Vec<String>, f64) {
-    let compound_length = compound.len();
+    let compound_length = unicode_bounds(compound).len();
 
     let mut grid: Vec<(f64, Option<usize>)> = vec![(0.0, None)];
 
@@ -30,7 +32,15 @@ pub fn viterbi_segment(model: &morfessor::BaselineModel, compound: &str, add_cou
 
     let bad_likelihood = compound_length as f64 * log_tokens + 1.0;
 
-    for t in 1..=compound_length {
+    let bounds = unicode_bounds(compound);
+
+    let mut bounds_upper = bounds.clone();
+    let mut bounds_lower = bounds.clone();
+
+    bounds_lower.pop();
+    bounds_lower.insert(0, 0);
+
+    for t in bounds_upper {
         let mut best_path: Option<usize> = None;
         let mut best_cost: Option<f64> = None;
 
@@ -42,8 +52,13 @@ pub fn viterbi_segment(model: &morfessor::BaselineModel, compound: &str, add_cou
         };
 
         // TODO implement nosplit_re
+        // TODO handle max length
 
-        for pt in cmp::max(0, t as isize - max_len as isize) as usize..t {
+        for pt in bounds_lower.clone() {
+            if pt >= t {
+                break; // up to but not including t
+            }
+
             // if grid[pt].0.is_nan() { // TODO this might be unnecessary
             //     continue;
             // }
@@ -66,7 +81,7 @@ pub fn viterbi_segment(model: &morfessor::BaselineModel, compound: &str, add_cou
             }
 
             if add_count == 0.0 {
-                if construction.len() == 1 {
+                if unicode_bounds(construction).len() == 1 {
                     cost += bad_likelihood;
 
                     eval_path(pt, cost);
@@ -100,15 +115,30 @@ pub fn viterbi_segment(model: &morfessor::BaselineModel, compound: &str, add_cou
             eval_path(pt, cost);
         }
 
-        grid.push((best_cost.unwrap_or(f64::NAN), best_path));
+        if best_path.is_none() {
+            panic!("No best path");
+        }
+
+        // pad grid to account for multibyte characters
+        // note that grid is later iterated in reverse
+
+        while grid.len() < t {
+            grid.push((f64::NAN, None));
+        }
+
+        grid.push((best_cost.unwrap(), best_path));
     }
 
     let mut constructions: Vec<String> = Vec::new();
 
-    let mut cost = grid[compound_length].0; // TODO grid[grid.len() - 1] equiv?
-    let mut path = grid[compound_length].1;
+    if grid.len() != compound.as_bytes().len() + 1 {
+        panic!("Invalid grid length");
+    }
 
-    let mut last_t = compound_length; // TODO clen + 1 in python code
+    let mut cost = grid[grid.len() - 1].0;
+    let mut path = grid[grid.len() - 1].1;
+
+    let mut last_t = compound.as_bytes().len();
 
     while let Some(t) = path {
         constructions.push(compound[t..last_t].to_string());
@@ -119,6 +149,10 @@ pub fn viterbi_segment(model: &morfessor::BaselineModel, compound: &str, add_cou
     constructions.reverse();
 
     cost += (corpus_tokens + corpus_boundaries).ln() - corpus_boundaries.ln();
+
+    if constructions.len() == 0 {
+        panic!("No constructions");
+    }
 
     return (constructions, cost);
 }
