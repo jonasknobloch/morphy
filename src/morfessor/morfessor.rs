@@ -5,8 +5,8 @@ use bytes::Bytes;
 use prost::{DecodeError, Message};
 
 use serde::{Deserialize, Serialize};
-use unicode_segmentation::UnicodeSegmentation;
-use crate::utils::offsets::unicode_bounds;
+
+use crate::utils::offsets::unicode_scalar_bounds;
 
 pub mod morfessor {
     include!(concat!(env!("OUT_DIR"), "/morfessor.rs"));
@@ -17,7 +17,7 @@ pub fn decode_model<P: AsRef<Path>>(path: P) -> Result<morfessor::BaselineModel,
 }
 
 pub fn viterbi_segment(model: &morfessor::BaselineModel, compound: &str, add_count: f64, max_len: usize) -> (Vec<String>, f64) {
-    let compound_length = unicode_bounds(compound).len();
+    let compound_length = unicode_scalar_bounds(compound).len();
 
     let mut grid: Vec<(f64, Option<usize>)> = vec![(0.0, None)];
 
@@ -32,7 +32,7 @@ pub fn viterbi_segment(model: &morfessor::BaselineModel, compound: &str, add_cou
 
     let bad_likelihood = compound_length as f64 * log_tokens + 1.0;
 
-    let bounds = unicode_bounds(compound);
+    let bounds = unicode_scalar_bounds(compound);
 
     let mut bounds_upper = bounds.clone();
     let mut bounds_lower = bounds.clone();
@@ -81,7 +81,7 @@ pub fn viterbi_segment(model: &morfessor::BaselineModel, compound: &str, add_cou
             }
 
             if add_count == 0.0 {
-                if unicode_bounds(construction).len() == 1 {
+                if unicode_scalar_bounds(construction).len() == 1 {
                     cost += bad_likelihood;
 
                     eval_path(pt, cost);
@@ -158,7 +158,7 @@ pub fn viterbi_segment(model: &morfessor::BaselineModel, compound: &str, add_cou
 }
 
 pub fn get_code_length(lexicon_encoding: &morfessor::LexiconEncoding, construction: &str) -> f64 {
-    let l = construction.len() as f64 + 1.0;
+    let l = construction.chars().count() as f64 + 1.0;
 
     let mut cost = l * (lexicon_encoding.tokens as f64 + l).ln();
 
@@ -174,4 +174,60 @@ pub fn get_code_length(lexicon_encoding: &morfessor::LexiconEncoding, constructi
     }
 
     cost
+}
+
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_code_length_composed() {
+        let model = decode_model("scripts/unsup_model.proto").unwrap();
+
+        let lexicon_encoding = model.lexicon_coding.as_ref().unwrap();
+
+        let cost = get_code_length(lexicon_encoding, "\u{00E9}");
+
+        assert_eq!(cost, 14.375011301554892);
+    }
+
+    #[test]
+    fn test_get_code_length_decomposed() {
+        let model = decode_model("scripts/unsup_model.proto").unwrap();
+
+        let lexicon_encoding = model.lexicon_coding.as_ref().unwrap();
+
+        let cost = get_code_length(lexicon_encoding, "\u{0065}\u{0301}");
+
+        assert_eq!(cost, 16.65337147997293);
+    }
+
+    #[test]
+    fn test_viterbi_segment() {
+        let model = decode_model("scripts/unsup_model.proto").unwrap();
+
+        let (segments, score) = viterbi_segment(&model, "unfoobared", 0.0, 30);
+
+        assert_eq!(segments, vec!["un", "foo", "bar", "ed"]);
+        assert_eq!(score, 32.684465337620665);
+    }
+
+    #[test]
+    fn test_viterbi_segment_composed() {
+        let model = decode_model("scripts/unsup_model.proto").unwrap();
+
+        let (segments, score) = viterbi_segment(&model, "brul\u{00E9}e", 0.0, 30);
+
+        assert_eq!(segments, vec!["bru", "l", "\u{00E9}", "e"]);
+        assert_eq!(score, 109.47779723820601);
+    }
+
+    #[test]
+    fn test_viterbi_segment_decomposed() {
+        let model = decode_model("scripts/unsup_model.proto").unwrap();
+
+        let (segments, score) = viterbi_segment(&model, "brul\u{0065}\u{0301}e", 0.0, 30);
+
+        assert_eq!(segments, vec!["brul\u{0065}", "\u{0301}", "e"]);
+        assert_eq!(score, 118.92118396646775);
+    }
 }

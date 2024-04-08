@@ -1,22 +1,20 @@
-use unicode_segmentation::UnicodeSegmentation;
-
-pub fn collect_grapheme_offsets(segments: Vec<String>) -> Vec<(usize, usize)> {
-    let mut grapheme_offsets: Vec<(usize, usize)> = vec![];
+pub fn collect_scalar_offsets(segments: Vec<String>) -> Vec<(usize, usize)> {
+    let mut character_offsets: Vec<(usize, usize)> = vec![];
 
     let mut index = 0;
 
     for segment in segments {
-        let length = segment.graphemes(true).count();
+        let length = segment.chars().count();
 
-        grapheme_offsets.push((index, index + length));
+        character_offsets.push((index, index + length));
 
         index += length;
     }
 
-    return grapheme_offsets;
+    return character_offsets;
 }
 
-pub fn to_byte_offsets_scp(message: &str, character_offsets: Vec<(usize, usize)>) -> Vec<(usize, usize)> {
+pub fn scalar_to_byte_offsets(message: &str, character_offsets: Vec<(usize, usize)>) -> Vec<(usize, usize)> {
     let chars = message.chars().collect::<Vec<char>>(); // unicode scalar values
 
     if character_offsets[character_offsets.len()-1].1 < chars.len() {
@@ -41,40 +39,13 @@ pub fn to_byte_offsets_scp(message: &str, character_offsets: Vec<(usize, usize)>
     return byte_offsets;
 }
 
-pub fn to_byte_offsets(message: &str, grapheme_offsets: Vec<(usize, usize)>) -> Vec<(usize, usize)> {
-    let graphemes = message.graphemes(true).collect::<Vec<&str>>(); // unicode grapheme clusters
-
-    if grapheme_offsets[grapheme_offsets.len()-1].1 < graphemes.len() {
-        panic!("invalid grapheme offsets")
-    }
-
-    let mut byte_offsets: Vec<(usize, usize)> = vec![];
-
-    let mut index = 0;
-
-    for offsets in grapheme_offsets {
-        let length = graphemes[offsets.0..offsets.1]
-            .iter()
-            .map(|s| s.chars())
-            .flatten()
-            .map(|c| c.len_utf8())
-            .sum::<usize>();
-
-        byte_offsets.push((index, index + length));
-
-        index += length;
-    }
-
-    return byte_offsets;
-}
-
-pub fn unicode_bounds(message: &str) -> Vec<usize> {
+pub fn unicode_scalar_bounds(message: &str) -> Vec<usize> {
     let mut bounds: Vec<usize> = vec![];
 
     let mut index = 0;
 
-    for grapheme in message.graphemes(true) {
-        let length = grapheme.len();
+    for character in message.chars() {
+        let length = character.len_utf8();
 
         bounds.push(index + length);
 
@@ -100,25 +71,26 @@ mod tests {
     const DECOMPOSED: &str = "\u{0065}\u{0301}"; // "é" -> UTF-8: 0x65 0xCC 0x81
 
     #[test]
-    fn test_to_byte_offsets_composed() {
-        assert_eq!(to_byte_offsets_scp(COMPOSED, vec![(0, 1)]), vec![(0, 2)]);
+    fn test_scalar_to_byte_offsets_composed() {
+        assert_eq!(scalar_to_byte_offsets(COMPOSED, vec![(0, 1)]), vec![(0, 2)]);
     }
 
     #[test]
-    #[ignore]
-    fn test_to_byte_offset_decomposed() {
-        assert_eq!(to_byte_offsets_scp(DECOMPOSED, vec![(0, 1)]), vec![(0, 3)]); // returns [(0, 1)]
+    fn test_scalar_to_byte_offset_decomposed() {
+        assert_eq!(scalar_to_byte_offsets(DECOMPOSED, vec![(0, 2)]), vec![(0, 3)]);
     }
 
     #[test]
-    fn test_to_byte_offsets_unicode() {
-        assert_eq!(to_byte_offsets(COMPOSED, vec![(0, 1)]), vec![(0, 2)]);
-        assert_eq!(to_byte_offsets(DECOMPOSED, vec![(0, 1)]), vec![(0, 3)]);
+    fn test_unicode_scalar_bounds() {
+        assert_eq!(unicode_scalar_bounds("foo"), vec![1, 2, 3]);
+        assert_eq!(unicode_scalar_bounds("l\u{00E9}l"), vec![1, 3, 4]);
+        assert_eq!(unicode_scalar_bounds("l\u{0065}\u{0301}l"), vec![1, 2, 4, 5]);
     }
 
     #[test]
-    fn test_unicode_bounds() {
-        assert_eq!(unicode_bounds("foo"), vec![1, 2, 3]);
-        assert_eq!(unicode_bounds("lél"), vec![1, 3, 4]);
+    fn test_collect_scalar_offsets() {
+        assert_eq!(collect_scalar_offsets(vec!["foo".to_string()]), vec![(0, 3)]);
+        assert_eq!(collect_scalar_offsets(vec!["l".to_string(), "\u{00E9}".to_string(), "l".to_string()]), vec![(0, 1), (1, 2), (2, 3)]);
+        assert_eq!(collect_scalar_offsets(vec!["l".to_string(), "\u{0065}\u{0301}".to_string(), "l".to_string()]), vec![(0, 1), (1, 3), (3, 4)]);
     }
 }

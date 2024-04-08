@@ -664,7 +664,6 @@ dependencies = [
  "radix-tree",
  "serde",
  "tokenizers",
- "unicode-segmentation",
 ]
 
 [[package]]

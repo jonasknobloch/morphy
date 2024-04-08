@@ -71,6 +71,6 @@ impl Segmenter for TreeSplit {
         // decomposed unicode sequences probably result in invalid character offsets
         // see utils/offsets.rs for details on differing unicode representations
 
-        offsets::to_byte_offsets_scp(message, split_path(tree, chars))
+        offsets::scalar_to_byte_offsets(message, split_path(tree, chars))
     }
 }
