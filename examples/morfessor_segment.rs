@@ -1,10 +1,15 @@
-use std::io::Error;
 use morphy::morfessor::morfessor;
+use std::io::Error;
 
-fn main() -> Result<(), Error>{
+fn main() -> Result<(), Error> {
     let model = match morfessor::decode_model("scripts/unsup_model.proto") {
         Ok(model) => model,
-        Err(_) => return Err(Error::from(Error::new(std::io::ErrorKind::Other, "Failed to decode model"))),
+        Err(_) => {
+            return Err(Error::from(Error::new(
+                std::io::ErrorKind::Other,
+                "Failed to decode model",
+            )))
+        }
     };
 
     let corpus = vec![

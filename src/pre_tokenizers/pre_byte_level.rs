@@ -3,7 +3,9 @@ use serde::{Deserialize, Serialize};
 
 use tokenizers::normalizer::Range;
 use tokenizers::utils::{macro_rules_attribute, SysRegex};
-use tokenizers::{impl_serde_type, NormalizedString, PreTokenizedString, PreTokenizer, SplitDelimiterBehavior};
+use tokenizers::{
+    impl_serde_type, NormalizedString, PreTokenizedString, PreTokenizer, SplitDelimiterBehavior,
+};
 
 use crate::pre_tokenizers::segmenter::{Segmenter, SegmenterWrapper};
 
@@ -65,13 +67,9 @@ impl PreTokenizer for PreByteLevel {
                     offsets.0 + prefix_length
                 };
 
-                let right= offsets.1 + prefix_length;
+                let right = offsets.1 + prefix_length;
 
-                result.push(
-                    normalized
-                        .slice(Range::Normalized(left..right))
-                        .unwrap(),
-                );
+                result.push(normalized.slice(Range::Normalized(left..right)).unwrap());
             }
 
             if result.is_empty() {

@@ -1,16 +1,24 @@
-use morphy::pre_tokenizers::sequence::Sequence;
 use morphy::pre_tokenizers::morfessor;
+use morphy::pre_tokenizers::morfessor::MorfessorConfig;
+use morphy::pre_tokenizers::sequence::Sequence;
 use morphy::pre_tokenizers::PreTokenizerWrapper;
 use tokenizers::decoders::byte_level::ByteLevel;
 use tokenizers::models::bpe::BpeTrainerBuilder;
-use tokenizers::{AddedToken, DecoderWrapper, Model, ModelWrapper, NormalizerWrapper, PostProcessorWrapper, Result, Tokenizer, tokenizer, TokenizerBuilder};
 use tokenizers::models::TrainerWrapper;
-use morphy::pre_tokenizers::morfessor::MorfessorConfig;
+use tokenizers::{
+    tokenizer, AddedToken, DecoderWrapper, Model, ModelWrapper, NormalizerWrapper,
+    PostProcessorWrapper, Result, Tokenizer, TokenizerBuilder,
+};
 
 fn main() -> Result<()> {
     let gpt2_tokenizer = Tokenizer::from_pretrained("gpt2", None)?;
 
-    let morfessor = morfessor::new_pre_tokenizer(false, true, "scripts/unsup_model.proto", MorfessorConfig::default());
+    let morfessor = morfessor::new_pre_tokenizer(
+        false,
+        true,
+        "scripts/unsup_model.proto",
+        MorfessorConfig::default(),
+    );
 
     let pre_tokenizer = Sequence::new(vec![
         PreTokenizerWrapper::from(morfessor),
@@ -33,17 +41,15 @@ fn main() -> Result<()> {
     .build()
     .unwrap();
 
-    let mut trainer = TrainerWrapper::from(BpeTrainerBuilder::new()
-        .show_progress(true)
-        .vocab_size(50256)
-        .min_frequency(0)
-        .build());
+    let mut trainer = TrainerWrapper::from(
+        BpeTrainerBuilder::new()
+            .show_progress(true)
+            .vocab_size(50256)
+            .min_frequency(0)
+            .build(),
+    );
 
-    tokenizer
-        .train_from_files(
-            &mut trainer,
-            vec!["data/tiny_shakespeare.txt".to_string()],
-        )?;
+    tokenizer.train_from_files(&mut trainer, vec!["data/tiny_shakespeare.txt".to_string()])?;
 
     // add special end_of_text token
 
@@ -55,7 +61,9 @@ fn main() -> Result<()> {
 
     // replace pre_tokenizer before saving
 
-    tokenizer.with_pre_tokenizer(PreTokenizerWrapper::from(gpt2_tokenizer.get_pre_tokenizer().cloned().unwrap()));
+    tokenizer.with_pre_tokenizer(PreTokenizerWrapper::from(
+        gpt2_tokenizer.get_pre_tokenizer().cloned().unwrap(),
+    ));
 
     tokenizer.save("tokenizer_gpt2+morf_tiny_shakespeare_50k.json", false)?;
 

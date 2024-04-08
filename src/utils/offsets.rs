@@ -14,10 +14,13 @@ pub fn collect_scalar_offsets(segments: Vec<String>) -> Vec<(usize, usize)> {
     return character_offsets;
 }
 
-pub fn scalar_to_byte_offsets(message: &str, character_offsets: Vec<(usize, usize)>) -> Vec<(usize, usize)> {
+pub fn scalar_to_byte_offsets(
+    message: &str,
+    character_offsets: Vec<(usize, usize)>,
+) -> Vec<(usize, usize)> {
     let chars = message.chars().collect::<Vec<char>>(); // unicode scalar values
 
-    if character_offsets[character_offsets.len()-1].1 < chars.len() {
+    if character_offsets[character_offsets.len() - 1].1 < chars.len() {
         panic!("invalid character offsets")
     }
 
@@ -77,20 +80,43 @@ mod tests {
 
     #[test]
     fn test_scalar_to_byte_offset_decomposed() {
-        assert_eq!(scalar_to_byte_offsets(DECOMPOSED, vec![(0, 2)]), vec![(0, 3)]);
+        assert_eq!(
+            scalar_to_byte_offsets(DECOMPOSED, vec![(0, 2)]),
+            vec![(0, 3)]
+        );
     }
 
     #[test]
     fn test_unicode_scalar_bounds() {
         assert_eq!(unicode_scalar_bounds("foo"), vec![1, 2, 3]);
         assert_eq!(unicode_scalar_bounds("l\u{00E9}l"), vec![1, 3, 4]);
-        assert_eq!(unicode_scalar_bounds("l\u{0065}\u{0301}l"), vec![1, 2, 4, 5]);
+        assert_eq!(
+            unicode_scalar_bounds("l\u{0065}\u{0301}l"),
+            vec![1, 2, 4, 5]
+        );
     }
 
     #[test]
     fn test_collect_scalar_offsets() {
-        assert_eq!(collect_scalar_offsets(vec!["foo".to_string()]), vec![(0, 3)]);
-        assert_eq!(collect_scalar_offsets(vec!["l".to_string(), "\u{00E9}".to_string(), "l".to_string()]), vec![(0, 1), (1, 2), (2, 3)]);
-        assert_eq!(collect_scalar_offsets(vec!["l".to_string(), "\u{0065}\u{0301}".to_string(), "l".to_string()]), vec![(0, 1), (1, 3), (3, 4)]);
+        assert_eq!(
+            collect_scalar_offsets(vec!["foo".to_string()]),
+            vec![(0, 3)]
+        );
+        assert_eq!(
+            collect_scalar_offsets(vec![
+                "l".to_string(),
+                "\u{00E9}".to_string(),
+                "l".to_string()
+            ]),
+            vec![(0, 1), (1, 2), (2, 3)]
+        );
+        assert_eq!(
+            collect_scalar_offsets(vec![
+                "l".to_string(),
+                "\u{0065}\u{0301}".to_string(),
+                "l".to_string()
+            ]),
+            vec![(0, 1), (1, 3), (3, 4)]
+        );
     }
 }

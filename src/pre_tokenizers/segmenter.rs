@@ -1,5 +1,5 @@
-use crate::pre_tokenizers::tree_split::TreeSplit;
 use crate::pre_tokenizers::morfessor::Morfessor;
+use crate::pre_tokenizers::tree_split::TreeSplit;
 
 use serde::{Deserialize, Serialize};
 

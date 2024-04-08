@@ -1,9 +1,9 @@
 pub mod external;
-pub mod sequence;
+pub mod morfessor;
 pub mod pre_byte_level;
 pub mod segmenter;
+pub mod sequence;
 pub mod tree_split;
-pub mod morfessor;
 
 use serde::{Deserialize, Serialize};
 

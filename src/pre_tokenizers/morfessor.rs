@@ -1,12 +1,17 @@
-use serde::{Deserialize, Serialize};
 use crate::morfessor::morfessor;
 use crate::morfessor::morfessor::morfessor::BaselineModel;
 use crate::morfessor::morfessor::viterbi_segment;
 use crate::pre_tokenizers::pre_byte_level::PreByteLevel;
 use crate::pre_tokenizers::segmenter::{Segmenter, SegmenterWrapper};
 use crate::utils::offsets::{collect_scalar_offsets, scalar_to_byte_offsets};
+use serde::{Deserialize, Serialize};
 
-pub fn new_pre_tokenizer(add_prefix_space: bool, use_regex: bool, model_path: &str, model_config: MorfessorConfig) -> PreByteLevel {
+pub fn new_pre_tokenizer(
+    add_prefix_space: bool,
+    use_regex: bool,
+    model_path: &str,
+    model_config: MorfessorConfig,
+) -> PreByteLevel {
     let model = match morfessor::decode_model(model_path) {
         Ok(model) => model,
         Err(_) => panic!("Failed to decode model"),
@@ -14,10 +19,14 @@ pub fn new_pre_tokenizer(add_prefix_space: bool, use_regex: bool, model_path: &s
 
     let segmenter = Morfessor {
         config: model_config,
-        morfessor: model
+        morfessor: model,
     };
 
-    PreByteLevel::new(add_prefix_space, use_regex, SegmenterWrapper::Morfessor(segmenter))
+    PreByteLevel::new(
+        add_prefix_space,
+        use_regex,
+        SegmenterWrapper::Morfessor(segmenter),
+    )
 }
 
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]
@@ -46,7 +55,12 @@ impl Default for MorfessorConfig {
 
 impl Segmenter for Morfessor {
     fn segment(&self, message: &str) -> Vec<(usize, usize)> {
-        let (segments, score) = viterbi_segment(&self.morfessor, message, self.config.add_count, self.config.max_len);
+        let (segments, score) = viterbi_segment(
+            &self.morfessor,
+            message,
+            self.config.add_count,
+            self.config.max_len,
+        );
 
         for segment in segments.iter() {
             if segment.chars().count() == 1 {

@@ -16,7 +16,12 @@ pub fn decode_model<P: AsRef<Path>>(path: P) -> Result<morfessor::BaselineModel,
     morfessor::BaselineModel::decode(Bytes::from(fs::read(path).unwrap()))
 }
 
-pub fn viterbi_segment(model: &morfessor::BaselineModel, compound: &str, add_count: f64, max_len: usize) -> (Vec<String>, f64) {
+pub fn viterbi_segment(
+    model: &morfessor::BaselineModel,
+    compound: &str,
+    add_count: f64,
+    max_len: usize,
+) -> (Vec<String>, f64) {
     let compound_length = unicode_scalar_bounds(compound).len();
 
     let mut grid: Vec<(f64, Option<usize>)> = vec![(0.0, None)];
@@ -25,8 +30,8 @@ pub fn viterbi_segment(model: &morfessor::BaselineModel, compound: &str, add_cou
     let corpus_boundaries = model.corpus_coding.as_ref().unwrap().boundaries as f64;
 
     let log_tokens: f64 = if corpus_tokens + corpus_boundaries + add_count > 0.0 {
-        (corpus_tokens + corpus_boundaries + add_count).ln() }
-    else {
+        (corpus_tokens + corpus_boundaries + add_count).ln()
+    } else {
         0.0
     };
 
@@ -69,7 +74,10 @@ pub fn viterbi_segment(model: &morfessor::BaselineModel, compound: &str, add_cou
             if let Some(analyses) = model.analyses.get(construction) {
                 if analyses.splitloc.is_empty() || analyses.splitloc[0] == 0 {
                     if analyses.count <= 0 {
-                        panic!("Construction count of '{}' is {}", construction, analyses.count);
+                        panic!(
+                            "Construction count of '{}' is {}",
+                            construction, analyses.count
+                        );
                     }
 
                     cost += log_tokens - (analyses.count as f64 + add_count).ln();
@@ -98,9 +106,15 @@ pub fn viterbi_segment(model: &morfessor::BaselineModel, compound: &str, add_cou
                 let corpus_weight = corpus_coding.weight as f64;
 
                 if model.corpus_coding.as_ref().unwrap().tokens == 0 {
-                    cost += add_count * add_count.ln() + get_code_length(lexicon_coding, construction) / corpus_weight;
+                    cost += add_count * add_count.ln()
+                        + get_code_length(lexicon_coding, construction) / corpus_weight;
                 } else {
-                    cost += log_tokens - add_count.ln() + (((lexicon_boundaries + add_count) * (lexicon_boundaries + add_count).ln()) - (lexicon_boundaries * lexicon_boundaries.ln()) + get_code_length(lexicon_coding, construction)) / corpus_weight;
+                    cost += log_tokens - add_count.ln()
+                        + (((lexicon_boundaries + add_count)
+                            * (lexicon_boundaries + add_count).ln())
+                            - (lexicon_boundaries * lexicon_boundaries.ln())
+                            + get_code_length(lexicon_coding, construction))
+                            / corpus_weight;
                 }
 
                 eval_path(pt, cost);
@@ -165,7 +179,13 @@ pub fn get_code_length(lexicon_encoding: &morfessor::LexiconEncoding, constructi
     cost -= (lexicon_encoding.boundaries as f64 + 1.0).ln();
 
     for atom in construction.chars() {
-        let c = match lexicon_encoding.atoms.as_ref().unwrap().counts.get(&atom.to_string()) {
+        let c = match lexicon_encoding
+            .atoms
+            .as_ref()
+            .unwrap()
+            .counts
+            .get(&atom.to_string())
+        {
             Some(c) => *c,
             None => 1,
         };

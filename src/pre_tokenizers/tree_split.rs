@@ -13,7 +13,11 @@ use radix_tree::{Node, Radix};
 
 use crate::utils::offsets;
 
-pub fn new_pre_tokenizer(add_prefix_space: bool, use_regex: bool, unimorph_dict: &str) -> PreByteLevel {
+pub fn new_pre_tokenizer(
+    add_prefix_space: bool,
+    use_regex: bool,
+    unimorph_dict: &str,
+) -> PreByteLevel {
     let mut unimorph = Unimorph::new();
 
     let home = env::var("HOME").unwrap_or_else(|_| "".to_string());
@@ -21,11 +25,13 @@ pub fn new_pre_tokenizer(add_prefix_space: bool, use_regex: bool, unimorph_dict:
 
     let _ = unimorph.init(dict.to_str().unwrap());
 
-    let segmenter = TreeSplit {
-        unimorph
-    };
+    let segmenter = TreeSplit { unimorph };
 
-    PreByteLevel::new(add_prefix_space, use_regex, SegmenterWrapper::TreeSplit(segmenter))
+    PreByteLevel::new(
+        add_prefix_space,
+        use_regex,
+        SegmenterWrapper::TreeSplit(segmenter),
+    )
 }
 
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]
