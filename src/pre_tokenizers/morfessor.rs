@@ -41,6 +41,7 @@ pub struct MorfessorConfig {
     pub add_count: f64,
     pub max_len: usize,
     pub threshold: f64,
+    pub reject_single_char_sequences: bool,
 }
 
 impl Default for MorfessorConfig {
@@ -49,6 +50,7 @@ impl Default for MorfessorConfig {
             add_count: 0.0,
             max_len: 30,
             threshold: 50.0,
+            reject_single_char_sequences: false,
         }
     }
 }
@@ -62,14 +64,22 @@ impl Segmenter for Morfessor {
             self.config.max_len,
         );
 
-        for segment in segments.iter() {
-            if segment.chars().count() == 1 {
-                return vec![(0, message.len())];
-            }
-        }
-
         if score > self.config.threshold {
             return vec![(0, message.len())];
+        }
+
+        if self.config.reject_single_char_sequences {
+            let mut prev = 0;
+
+            for segment in segments.iter() {
+                let count = segment.chars().count();
+
+                if prev == 1 && count == 1 {
+                    return vec![(0, message.len())];
+                }
+
+                prev = count;
+            }
         }
 
         scalar_to_byte_offsets(message, collect_scalar_offsets(segments))
