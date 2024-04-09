@@ -57,19 +57,23 @@ pub fn viterbi_segment(
         };
 
         // TODO implement nosplit_re
-        // TODO handle max length
 
         for pt in bounds_lower.clone() {
             if pt >= t {
                 break; // up to but not including t
             }
 
-            // if grid[pt].0.is_nan() { // TODO this might be unnecessary
-            //     continue;
-            // }
+            let construction = &compound[pt..t];
+
+            if construction.chars().count() > max_len {
+                continue;
+            }
 
             let mut cost = grid[pt].0;
-            let construction = &compound[pt..t];
+
+            // if cost.is_nan() { // TODO this might be unnecessary
+            //     continue;
+            // }
 
             if let Some(analyses) = model.analyses.get(construction) {
                 if analyses.splitloc.is_empty() || analyses.splitloc[0] == 0 {
@@ -249,5 +253,15 @@ mod tests {
 
         assert_eq!(segments, vec!["brul\u{0065}", "\u{0301}", "e"]);
         assert_eq!(score, 118.92118396646775);
+    }
+
+    #[test]
+    fn test_viterbi_segment_max_len() {
+        let model = decode_model("scripts/unsup_model.proto").unwrap();
+
+        let (segments, score) = viterbi_segment(&model, "unsupervised", 0.0, 5);
+
+        assert_eq!(segments, vec!["un", "super", "vis", "ed"]);
+        assert_eq!(score, 29.684031672881893);
     }
 }
