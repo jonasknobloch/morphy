@@ -38,18 +38,18 @@ pub struct Morfessor {
 
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]
 pub struct MorfessorConfig {
-    pub add_count: f64,
-    pub max_len: usize,
-    pub threshold: f64,
+    pub viterbi_smoothing: f64,
+    pub viterbi_max_len: usize,
+    pub rejection_threshold: f64,
     pub reject_single_char_sequences: bool,
 }
 
 impl Default for MorfessorConfig {
     fn default() -> Self {
         MorfessorConfig {
-            add_count: 0.0,
-            max_len: 30,
-            threshold: 50.0,
+            viterbi_smoothing: 0.0, // 0.0 command-line arg default / 1.0 viterbi_segment arg default
+            viterbi_max_len: 30,
+            rejection_threshold: 50.0,
             reject_single_char_sequences: false,
         }
     }
@@ -60,11 +60,11 @@ impl Segmenter for Morfessor {
         let (segments, score) = viterbi_segment(
             &self.morfessor,
             message,
-            self.config.add_count,
-            self.config.max_len,
+            self.config.viterbi_smoothing,
+            self.config.viterbi_max_len,
         );
 
-        if score > self.config.threshold {
+        if score > self.config.rejection_threshold {
             return vec![(0, message.len())];
         }
 
