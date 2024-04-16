@@ -31,9 +31,9 @@ pub fn new_pre_tokenizer(
 
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]
 pub struct Morfessor {
-    config: MorfessorConfig,
+    pub config: MorfessorConfig,
     #[serde(skip_deserializing, skip_serializing)]
-    morfessor: BaselineModel,
+    pub morfessor: BaselineModel,
 }
 
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]
