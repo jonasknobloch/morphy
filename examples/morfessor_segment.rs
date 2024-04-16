@@ -1,8 +1,9 @@
-use morphy::morfessor::morfessor;
-use std::io::Error;
+use morphy::pre_tokenizers::segmenter::Segmenter;
+use std::fs::File;
+use std::io::{BufRead, BufReader, BufWriter, Error, Write};
 
 fn main() -> Result<(), Error> {
-    let model = match morfessor::decode_model("scripts/unsup_model.proto") {
+    let model = match morphy::morfessor::morfessor::decode_model("scripts/semisup_model.proto") {
         Ok(model) => model,
         Err(_) => {
             return Err(Error::from(Error::new(
@@ -12,28 +13,38 @@ fn main() -> Result<(), Error> {
         }
     };
 
-    let corpus = vec![
-        "unsupervised",
-        "incredible",
-        "impressive",
-        "McLaren",
-        "unfoobared",
-        "YOOOO",
-        "WHATUP",
-        "1317281738",
-        "\u{00E9}",
-        "\u{0065}\u{0301}",
-    ];
+    let config = morphy::pre_tokenizers::morfessor::MorfessorConfig {
+        viterbi_smoothing: 0.0,
+        viterbi_max_len: 30,
+        rejection_threshold: 0.0,
+        reject_single_char_ngrams: 2,
+    };
 
-    for compound in corpus {
-        let (segments, score) = morfessor::viterbi_segment(&model, &compound, 0.0, 30);
+    let segmenter = morphy::pre_tokenizers::morfessor::Morfessor {
+        config: config,
+        morfessor: model,
+    };
 
-        if score < 50.0 {
-            println!("Segments: {:?}, Score: {}", segments, score);
-        } else {
-            println!("Segements: {:?}, Score: {}", vec![compound], score);
+    let reader = BufReader::new(File::open("data/goldstd_trainset.segmentation.eng")?);
+    let mut writer = BufWriter::new(File::create("s0_30_x_2.eng")?);
+
+    if let lines = reader.lines() {
+        for line in lines.flatten() {
+            let compound = line.split("\t").collect::<Vec<&str>>()[0];
+
+            let offsets = segmenter.segment(&compound);
+
+            let mut parts = vec![];
+
+            for (start, end) in offsets {
+                parts.push(&compound[start..end])
+            }
+
+            let out = compound.to_string() + "\t" + &parts.join(" ") + "\n";
+
+            writer.write(out.as_bytes())?;
         }
     }
 
-    Ok(())
+    writer.flush()
 }
