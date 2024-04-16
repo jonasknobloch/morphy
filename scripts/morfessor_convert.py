@@ -11,7 +11,7 @@ import morfessor_pb2
 
 
 def convert_annotation(annotation, annotation_pb):
-    if not isinstance(annotation, dict):
+    if not isinstance(annotation, list):
         raise TypeError('annotation must be instance of list')
 
     if not isinstance(annotation_pb, morfessor_pb2.Annotation):
@@ -21,7 +21,7 @@ def convert_annotation(annotation, annotation_pb):
         if not isinstance(analysis, list):
             raise TypeError('analysis must be instance of list')
 
-        analysis_pb = morfessor_pb2.Analysis()
+        analysis_pb = morfessor_pb2.Analyses()
 
         analysis_pb.constructions.extend(analysis)
 
@@ -119,7 +119,7 @@ def convert_annotated_corpus_encoding(annotated_corpus_encoding, annotated_corpu
 
     corpus_coding = morfessor_pb2.CorpusEncoding()  # TODO necessary?
 
-    convert_corpus_encoding(corpus_coding, annotated_corpus_encoding.corpus_coding)
+    convert_corpus_encoding(annotated_corpus_encoding.corpus_coding, corpus_coding)
 
     annotated_corpus_encoding_pb.corpus_coding.CopyFrom(corpus_coding)
 
@@ -127,7 +127,7 @@ def convert_annotated_corpus_encoding(annotated_corpus_encoding, annotated_corpu
 def main(argv):
     io = MorfessorIO()
 
-    model = io.read_binary_model_file('unsup_model.bin')
+    model = io.read_binary_model_file('semisup_model.bin')
 
     model_proto = morfessor_pb2.BaselineModel()
 
@@ -201,7 +201,7 @@ def main(argv):
     model_proto._use_skips = model._use_skips
 
     # write to file
-    with open('unsup_model.proto', 'wb') as f:
+    with open('semisup_model.proto', 'wb') as f:
         f.write(model_proto.SerializeToString())
 
     print('lol')

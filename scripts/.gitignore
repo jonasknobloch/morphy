@@ -2,3 +2,5 @@ morfessor_pb2.py
 morfessor_pb2.pyi
 unsup_model.bin
 unsup_model.proto
+semisup_model.bin
+semisup_model.proto

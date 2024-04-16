@@ -96,7 +96,7 @@ message AnnotatedCorpusEncoding {
   float logtokensum = 1;
   int64 tokens = 2;
   int64 boundaries = 3;
-  int64 weight = 4; // The weight of this encoding. If the weight is None, it is updated automatically to be in balance with the corpus
+  float weight = 4; // The weight of this encoding. If the weight is None, it is updated automatically to be in balance with the corpus // TODO make optional?
   float _log2pi = 5;
 
   bool do_update_weight = 6;
