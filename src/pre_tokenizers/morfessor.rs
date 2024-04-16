@@ -41,7 +41,7 @@ pub struct MorfessorConfig {
     pub viterbi_smoothing: f64,
     pub viterbi_max_len: usize,
     pub rejection_threshold: f64,
-    pub reject_single_char_sequences: bool,
+    pub reject_single_char_ngrams: usize,
 }
 
 impl Default for MorfessorConfig {
@@ -50,7 +50,7 @@ impl Default for MorfessorConfig {
             viterbi_smoothing: 0.0, // 0.0 command-line arg default / 1.0 viterbi_segment arg default
             viterbi_max_len: 30,
             rejection_threshold: 50.0,
-            reject_single_char_sequences: false,
+            reject_single_char_ngrams: 2,
         }
     }
 }
@@ -64,21 +64,23 @@ impl Segmenter for Morfessor {
             self.config.viterbi_max_len,
         );
 
-        if score > self.config.rejection_threshold {
+        if self.config.rejection_threshold > 0.0 && score > self.config.rejection_threshold {
             return vec![(0, message.len())];
         }
 
-        if self.config.reject_single_char_sequences {
-            let mut prev = 0;
+        if self.config.reject_single_char_ngrams > 0 {
+            let mut sequence_len = 0;
 
             for segment in segments.iter() {
-                let count = segment.chars().count();
+                if segment.chars().count() == 1 {
+                    sequence_len += 1;
 
-                if prev == 1 && count == 1 {
-                    return vec![(0, message.len())];
+                    if sequence_len >= self.config.reject_single_char_ngrams {
+                        return vec![(0, message.len())];
+                    }
                 }
 
-                prev = count;
+                sequence_len = 0;
             }
         }
 
