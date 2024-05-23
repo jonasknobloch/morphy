@@ -37,7 +37,7 @@ pub fn new_pre_tokenizer(
 #[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]
 pub struct TreeSplit {
     #[serde(skip_deserializing, skip_serializing)]
-    unimorph: Unimorph,
+    pub unimorph: Unimorph,
 }
 
 impl Segmenter for TreeSplit {
