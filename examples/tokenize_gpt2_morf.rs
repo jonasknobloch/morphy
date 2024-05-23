@@ -1,7 +1,7 @@
-use morphy::pre_tokenizers::morfessor;
-use morphy::pre_tokenizers::morfessor::MorfessorConfig;
-use morphy::pre_tokenizers::sequence::Sequence;
-use morphy::pre_tokenizers::PreTokenizerWrapper;
+use mbpe::pre_tokenizers::morfessor;
+use mbpe::pre_tokenizers::morfessor::MorfessorConfig;
+use mbpe::pre_tokenizers::sequence::Sequence;
+use mbpe::pre_tokenizers::PreTokenizerWrapper;
 use tokenizers::decoders::byte_level::ByteLevel;
 use tokenizers::models::bpe::BpeTrainerBuilder;
 use tokenizers::models::TrainerWrapper;

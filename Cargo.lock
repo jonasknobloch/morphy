@@ -600,6 +600,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b8dd856d451cc0da70e2ef2ce95a18e39a93b7558bedf10201ad28503f918568"
 
 [[package]]
+name = "mbpe"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "csv",
+ "lazy_static",
+ "paste",
+ "prost",
+ "prost-build",
+ "prost-types",
+ "radix-tree",
+ "serde",
+ "tokenizers",
+]
+
+[[package]]
 name = "memchr"
 version = "2.6.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -648,22 +664,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.39",
-]
-
-[[package]]
-name = "morphy"
-version = "0.1.0"
-dependencies = [
- "bytes",
- "csv",
- "lazy_static",
- "paste",
- "prost",
- "prost-build",
- "prost-types",
- "radix-tree",
- "serde",
- "tokenizers",
 ]
 
 [[package]]

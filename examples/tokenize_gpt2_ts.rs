@@ -1,6 +1,6 @@
-use morphy::pre_tokenizers::sequence::Sequence;
-use morphy::pre_tokenizers::tree_split;
-use morphy::pre_tokenizers::PreTokenizerWrapper;
+use mbpe::pre_tokenizers::sequence::Sequence;
+use mbpe::pre_tokenizers::tree_split;
+use mbpe::pre_tokenizers::PreTokenizerWrapper;
 use tokenizers::decoders::byte_level::ByteLevel;
 use tokenizers::models::bpe::BpeTrainerBuilder;
 use tokenizers::models::TrainerWrapper;

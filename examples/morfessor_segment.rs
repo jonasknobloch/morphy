@@ -1,9 +1,9 @@
-use morphy::pre_tokenizers::segmenter::Segmenter;
+use mbpe::pre_tokenizers::segmenter::Segmenter;
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Error, Write};
 
 fn main() -> Result<(), Error> {
-    let model = match morphy::morfessor::morfessor::decode_model("scripts/semisup_model.proto") {
+    let model = match mbpe::morfessor::morfessor::decode_model("scripts/semisup_model.proto") {
         Ok(model) => model,
         Err(_) => {
             return Err(Error::from(Error::new(
@@ -13,14 +13,14 @@ fn main() -> Result<(), Error> {
         }
     };
 
-    let config = morphy::pre_tokenizers::morfessor::MorfessorConfig {
+    let config = mbpe::pre_tokenizers::morfessor::MorfessorConfig {
         viterbi_smoothing: 0.0,
         viterbi_max_len: 30,
         rejection_threshold: 0.0,
         reject_single_char_ngrams: 2,
     };
 
-    let segmenter = morphy::pre_tokenizers::morfessor::Morfessor {
+    let segmenter = mbpe::pre_tokenizers::morfessor::Morfessor {
         config: config,
         morfessor: model,
     };
